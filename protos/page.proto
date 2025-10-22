@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package page_service.v1;
+
+message PageRequest {
+   int32 id = 1;
+}
+
+message ReadPageResponse {
+  bytes page_data=1;
+}
+
+message WritePageResponse {
+  bytes page_data=1;
+  repeated int32 copyset=2;
+}
+
+service PageService {
+  rpc ReadPage(PageRequest) returns (ReadPageResponse);
+  rpc WritePage(PageRequest) returns (WritePageResponse);
+}
