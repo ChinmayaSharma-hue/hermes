@@ -47,13 +47,6 @@ namespace dsm {
         stopPageFaultHandler();
     }
 
-    void* Runtime::acquireShared(const size_t allocationSize, const size_t alignment) const
-    {
-        logger_->info("Acquire {:#d}", allocationSize);
-        return allocator_->allocate(allocationSize, alignment);
-    }
-
-
     void Runtime::startGrpcServer() {
         logger_->info("Starting grpc server");
         grpcServer_.start();

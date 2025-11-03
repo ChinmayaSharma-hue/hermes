@@ -32,6 +32,22 @@ namespace dsm {
         };
     }
 
+    template <typename T>
+    class SharedObject
+    {
+        public:
+            explicit SharedObject(void *baseAddress): baseAddress_(baseAddress) {};
+
+        T& operator[](const int index)
+        {
+            const int pageSize = sysconf(_SC_PAGESIZE);
+            auto returnAddress = static_cast<uint8_t*>(baseAddress_) + index*pageSize;
+            return *reinterpret_cast<T*>(returnAddress);
+        }
+
+        private:
+            void *baseAddress_;
+    };
 
     // Class functionality
     // 1. Function as a wrapper class of std::map
@@ -83,13 +99,23 @@ namespace dsm {
             Runtime();
             ~Runtime();
 
-            void* acquireShared(size_t allocationSize, size_t alignment) const;
+        template <typename T>
+        SharedObject<T> acquireShared(const size_t allocationSize, const size_t alignment) const
+        {
+            logger_->info("Acquire {:#d}", allocationSize);
+            const int pageSize = sysconf(_SC_PAGESIZE);
+            const int numberOfElements = allocationSize / sizeof(T);
+            void *base = allocator_->allocate(numberOfElements*pageSize, alignment);
+
+            auto sharedObject = SharedObject<T>(base);
+            return sharedObject;
+        }
 
         private:
             std::shared_ptr<spdlog::logger> logger_;
             size_t region_;
             void * base_;
-            long int pageFaultHandlerFd_;
+            long int pageFaultHandlerFd_{};
             Map<constructs::pte> pageTable_;
             Map<constructs::owner_information> ownerInformation_;
             RPCServer grpcServer_;
